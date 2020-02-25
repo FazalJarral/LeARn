@@ -9,13 +9,14 @@ import android.widget.Toast;
 
 import com.example.learn.Fragment.HomeFragment;
 import com.example.learn.Helper.CameraPermissionHelper;
+import com.example.learn.Helper.ItemClick;
+import com.example.learn.bean.Asset;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity  {
     BottomNavigationView bottomNavigationView;
     FragmentTransaction fragmentTransaction;
     FragmentManager fragmentManager = getSupportFragmentManager();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,4 +49,7 @@ public class MainActivity extends AppCompatActivity {
             finish();
         }
     }
+
+
+
 }

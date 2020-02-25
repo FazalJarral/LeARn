@@ -1,5 +1,6 @@
 package com.example.learn.Fragment;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.learn.Adapter.AssetAdapter;
+import com.example.learn.Helper.ItemClick;
 import com.example.learn.Network.PolyApi;
 import com.example.learn.R;
 import com.example.learn.bean.Asset;
@@ -31,13 +33,13 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class HomeFragment extends Fragment {
     private CustomArFragment fragment;
+    ItemClick itemClick = null;
     String BASE_URL = "https://poly.googleapis.com/v1/";
     String API_KEY = "AIzaSyCAYctVXe-YtbJLj6See3kNmFRVGBeXedo";
     androidx.appcompat.widget.SearchView searchView;
     PolyApi polyApi;
     RecyclerView recyclerView;
     AssetAdapter adapter;
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -101,8 +103,9 @@ public class HomeFragment extends Fragment {
                           gilfList.add(myAsset);
                       }
                   }*/
+
                   recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-                  adapter = new AssetAdapter(getContext() , assetList);
+                  adapter = new AssetAdapter(getContext() , assetList , itemClick);
                   recyclerView.setAdapter(adapter);
                   recyclerView.setVisibility(View.VISIBLE);
               }
@@ -115,4 +118,17 @@ public class HomeFragment extends Fragment {
            }
        });
     }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof ItemClick){
+            itemClick = (ItemClick) context;
+
+        }else throw new RuntimeException(context.toString() + "implement listner");
+    }
+
+
+
+
 }

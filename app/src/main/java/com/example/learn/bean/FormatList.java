@@ -6,10 +6,10 @@ import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
 public class FormatList {
-    @SerializedName("formats")
-List<Format> FormatList;
 
-    public List<Format> getFormatList() {
+    List<Format> FormatList;
+
+    public List<Format> getFormat() {
         return FormatList;
     }
 }

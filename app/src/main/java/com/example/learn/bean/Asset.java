@@ -2,10 +2,17 @@ package com.example.learn.bean;
 
 import androidx.annotation.NonNull;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+
+import java.util.List;
+
 public class Asset {
     String displayName;
     Thumbnail thumbnail;
-    Format format;
+    @SerializedName("formats")
+            @Expose
+    List<Format> formatList;
     public Asset() {
     }
 
@@ -25,8 +32,8 @@ public class Asset {
         this.thumbnail = thumbnail;
     }
 
-    public Format getFormat() {
-        return format;
+    public List<Format> getFormatList() {
+        return formatList;
     }
 
     @NonNull

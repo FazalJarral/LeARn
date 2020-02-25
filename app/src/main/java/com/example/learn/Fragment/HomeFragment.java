@@ -31,7 +31,7 @@ public class HomeFragment extends Fragment {
     String API_KEY = "AIzaSyCAYctVXe-YtbJLj6See3kNmFRVGBeXedo";
     androidx.appcompat.widget.SearchView searchView;
     PolyApi polyApi;
-    
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {

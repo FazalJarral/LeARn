@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.learn.R;
 import com.example.learn.bean.Asset;
 
@@ -38,6 +39,9 @@ public class AssetAdapter extends RecyclerView.Adapter<AssetAdapter.ViewHolder>{
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Asset asset = assetList.get(position);
         holder.textView.setText(asset.getDisplayName());
+        Glide.with(context)
+                .load(asset.getThumbnail().getUrl())
+                .into(holder.imageView);
 
     }
 

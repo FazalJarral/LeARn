@@ -18,7 +18,7 @@ import org.w3c.dom.Text;
 
 import java.util.List;
 
-public class AssetAdapter extends RecyclerView.Adapter<AssetAdapter.ViewHolder>{
+public class AssetAdapter extends RecyclerView.Adapter<AssetAdapter.ViewHolder> implements View.OnClickListener {
     Context context;
     List<Asset> assetList;
 
@@ -42,12 +42,19 @@ public class AssetAdapter extends RecyclerView.Adapter<AssetAdapter.ViewHolder>{
         Glide.with(context)
                 .load(asset.getThumbnail().getUrl())
                 .into(holder.imageView);
+        holder.imageView.setOnClickListener(this);
+        holder.textView.setOnClickListener(this);
 
     }
 
     @Override
     public int getItemCount() {
         return assetList.size();
+    }
+
+    @Override
+    public void onClick(View v) {
+
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {

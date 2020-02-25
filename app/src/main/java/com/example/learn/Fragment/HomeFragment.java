@@ -11,12 +11,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.learn.Adapter.AssetAdapter;
 import com.example.learn.Network.PolyApi;
 import com.example.learn.R;
 import com.example.learn.bean.Asset;
 import com.example.learn.bean.ModelList;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -31,12 +35,15 @@ public class HomeFragment extends Fragment {
     String API_KEY = "AIzaSyCAYctVXe-YtbJLj6See3kNmFRVGBeXedo";
     androidx.appcompat.widget.SearchView searchView;
     PolyApi polyApi;
+    RecyclerView recyclerView;
+    AssetAdapter adapter;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home , container ,false);
         searchView = view.findViewById(R.id.search_view);
+        recyclerView = view.findViewById(R.id.recyclerView);
         return view;
     }
 
@@ -87,11 +94,17 @@ public class HomeFragment extends Fragment {
 
 
                   List <Asset> assetList = response.body().getAssets();
-                    for (Asset asset : assetList){
+                  List<Asset> gilfList = new ArrayList<>();
 
-                    }
-
-
+                /*  for (Asset myAsset : assetList){
+                      if (myAsset.getFormat().getFormatType().contains("GLTF")){
+                          gilfList.add(myAsset);
+                      }
+                  }*/
+                  recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+                  adapter = new AssetAdapter(getContext() , assetList);
+                  recyclerView.setAdapter(adapter);
+                  recyclerView.setVisibility(View.VISIBLE);
               }
            }
 

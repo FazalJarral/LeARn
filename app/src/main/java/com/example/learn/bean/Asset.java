@@ -5,7 +5,7 @@ import androidx.annotation.NonNull;
 public class Asset {
     String displayName;
     Thumbnail thumbnail;
-
+    Format format;
     public Asset() {
     }
 
@@ -23,6 +23,10 @@ public class Asset {
 
     public void setThumbnail(Thumbnail thumbnail) {
         this.thumbnail = thumbnail;
+    }
+
+    public Format getFormat() {
+        return format;
     }
 
     @NonNull

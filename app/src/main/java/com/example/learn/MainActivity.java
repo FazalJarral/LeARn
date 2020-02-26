@@ -13,7 +13,7 @@ import com.example.learn.Helper.ItemClick;
 import com.example.learn.bean.Asset;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-public class MainActivity extends AppCompatActivity  {
+public class MainActivity extends AppCompatActivity implements ItemClick {
     BottomNavigationView bottomNavigationView;
     FragmentTransaction fragmentTransaction;
     FragmentManager fragmentManager = getSupportFragmentManager();
@@ -51,5 +51,8 @@ public class MainActivity extends AppCompatActivity  {
     }
 
 
-
+    @Override
+    public void ItemClick(Asset asset) {
+        Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show();
+    }
 }

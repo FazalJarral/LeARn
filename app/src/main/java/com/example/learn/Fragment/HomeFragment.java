@@ -1,8 +1,10 @@
 package com.example.learn.Fragment;
 
 import android.content.Context;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,10 +19,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.learn.Adapter.AssetAdapter;
 import com.example.learn.Helper.ItemClick;
+import com.example.learn.Helper.ItemSelect;
 import com.example.learn.Network.PolyApi;
 import com.example.learn.R;
 import com.example.learn.bean.Asset;
+import com.example.learn.bean.Format;
 import com.example.learn.bean.ModelList;
+import com.google.ar.sceneform.assets.RenderableSource;
+import com.google.ar.sceneform.rendering.ModelRenderable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +37,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements ItemSelect {
     private CustomArFragment fragment;
     ItemClick itemClick = null;
     String BASE_URL = "https://poly.googleapis.com/v1/";
@@ -125,10 +131,39 @@ public class HomeFragment extends Fragment {
         if (context instanceof ItemClick){
             itemClick = (ItemClick) context;
 
-        }else throw new RuntimeException(context.toString() + "implement listner");
+        }
+            else throw new RuntimeException(context.toString() + "implement listner");
     }
 
 
+    @Override
+    public void onItemSelect(Asset asset) {
+        Toast.makeText(getContext(), "Selected", Toast.LENGTH_LONG).show();
+        recyclerView.setVisibility(View.GONE);
+        placeAsset(asset);
+    }
 
-
+    private void placeAsset(Asset asset) {
+        String url = null;
+        List<Format> formatLists = asset.getFormatList();
+        for (Format format : formatLists){
+            url = format.getFormatRoot().getUrl();
+        }
+        ModelRenderable.builder()
+                .setSource(getContext(), RenderableSource.builder().setSource(
+                        getContext(),
+                        Uri.parse(url),
+                        RenderableSource.SourceType.GLTF2)
+                        .setScale(0.5f)  // Scale the original model to 50%.
+                        .setRecenterMode(RenderableSource.RecenterMode.ROOT)
+                        .build())
+                .setRegistryId(url)
+                .build()
+                .thenAccept(renderable -> duckRenderable = renderable)
+                .exceptionally(
+                        throwable -> {
+                            Toast.makeText(getContext(), "Unable to load" + url, Toast.LENGTH_SHORT).show();
+                            return null;
+                        });
+    }
 }

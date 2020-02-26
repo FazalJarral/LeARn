@@ -1,6 +1,7 @@
 package com.example.learn;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -10,6 +11,7 @@ import android.widget.Toast;
 import com.example.learn.Fragment.HomeFragment;
 import com.example.learn.Helper.CameraPermissionHelper;
 import com.example.learn.Helper.ItemClick;
+import com.example.learn.Helper.ItemSelect;
 import com.example.learn.bean.Asset;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -17,12 +19,20 @@ public class MainActivity extends AppCompatActivity implements ItemClick {
     BottomNavigationView bottomNavigationView;
     FragmentTransaction fragmentTransaction;
     FragmentManager fragmentManager = getSupportFragmentManager();
+    ItemSelect itemSelectlistener;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         bottomNavigationView = findViewById(R.id.bottom_navigation);
 
+    }
+
+    @Override
+    public void onAttachFragment(Fragment fragment) {
+        super.onAttachFragment(fragment);
+        if (fragment instanceof  HomeFragment)
+        itemSelectlistener = (ItemSelect) fragment;
     }
 
     @Override
@@ -54,5 +64,6 @@ public class MainActivity extends AppCompatActivity implements ItemClick {
     @Override
     public void ItemClick(Asset asset) {
         Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show();
+        itemSelectlistener.onItemSelect(asset);
     }
 }

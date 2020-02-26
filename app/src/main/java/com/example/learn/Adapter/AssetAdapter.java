@@ -42,18 +42,26 @@ public class AssetAdapter extends RecyclerView.Adapter<AssetAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Asset asset = assetList.get(position);
-        List<Format> formatLists = asset.getFormatList();
-           /* for (Format format : formatLists) {
-            if (format.getFormatType().contains("GLTF")) {
 
-
-        }
-        }*/
+      //  checkAsset(asset , position);
         holder.textView.setText(asset.getDisplayName());
         Glide.with(context)
                 .load(asset.getThumbnail().getUrl())
                 .into(holder.imageView);
 
+
+    }
+
+    private void checkAsset(Asset asset , int position) {
+
+        List<Format> formatLists = asset.getFormatList();
+        for (Format format : formatLists) {
+            if (!(format.getFormatType().contains("GLTF"))) {
+                assetList.remove(position);
+                notifyDataSetChanged();
+
+            }
+        }
     }
 
     @Override

@@ -25,6 +25,8 @@ import com.example.learn.R;
 import com.example.learn.bean.Asset;
 import com.example.learn.bean.Format;
 import com.example.learn.bean.ModelList;
+import com.google.ar.core.Anchor;
+import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.assets.RenderableSource;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 
@@ -46,10 +48,12 @@ public class HomeFragment extends Fragment implements ItemSelect {
     PolyApi polyApi;
     RecyclerView recyclerView;
     AssetAdapter adapter;
+    Anchor anchor;
+    String url = null;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_home , container ,false);
+        View view = inflater.inflate(R.layout.fragment_home, container, false);
         searchView = view.findViewById(R.id.search_view);
         recyclerView = view.findViewById(R.id.recyclerView);
         return view;
@@ -79,30 +83,28 @@ public class HomeFragment extends Fragment implements ItemSelect {
 
 
 
-
-
     }
 
     private void updateModelList(String query) {
-       Log.e("query" , query);
-        Retrofit retrofit  = new Retrofit.Builder()
+        Log.e("query", query);
+        Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         polyApi = retrofit.create(PolyApi.class);
 
-        Call<ModelList> models = polyApi.getModel(query  , API_KEY );
-        Log.e("query" , models.request().toString());
+        Call<ModelList> models = polyApi.getModel(query, API_KEY);
+        Log.e("query", models.request().toString());
 
-       models.enqueue(new Callback<ModelList>() {
-           @Override
-           public void onResponse(Call<ModelList> call, Response<ModelList> response) {
-              if (response.isSuccessful()){
-                  Toast.makeText(getContext(), "Successful", Toast.LENGTH_SHORT).show();
+        models.enqueue(new Callback<ModelList>() {
+            @Override
+            public void onResponse(Call<ModelList> call, Response<ModelList> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(getContext(), "Successful", Toast.LENGTH_SHORT).show();
 
 
-                  List <Asset> assetList = response.body().getAssets();
-                  List<Asset> gilfList = new ArrayList<>();
+                    List<Asset> assetList = response.body().getAssets();
+                    List<Asset> gilfList = new ArrayList<>();
 
                 /*  for (Asset myAsset : assetList){
                       if (myAsset.getFormat().getFormatType().contains("GLTF")){
@@ -110,29 +112,28 @@ public class HomeFragment extends Fragment implements ItemSelect {
                       }
                   }*/
 
-                  recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-                  adapter = new AssetAdapter(getContext() , assetList , itemClick);
-                  recyclerView.setAdapter(adapter);
-                  recyclerView.setVisibility(View.VISIBLE);
-              }
-           }
+                    recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+                    adapter = new AssetAdapter(getContext(), assetList, itemClick);
+                    recyclerView.setAdapter(adapter);
+                    recyclerView.setVisibility(View.VISIBLE);
+                }
+            }
 
-           @Override
-           public void onFailure(Call<ModelList> call, Throwable t) {
-               Log.e("ErrorMessage" , t.getLocalizedMessage());
+            @Override
+            public void onFailure(Call<ModelList> call, Throwable t) {
+                Log.e("ErrorMessage", t.getLocalizedMessage());
 
-           }
-       });
+            }
+        });
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof ItemClick){
+        if (context instanceof ItemClick) {
             itemClick = (ItemClick) context;
 
-        }
-            else throw new RuntimeException(context.toString() + "implement listner");
+        } else throw new RuntimeException(context.toString() + "implement listner");
     }
 
 
@@ -144,10 +145,18 @@ public class HomeFragment extends Fragment implements ItemSelect {
     }
 
     private void placeAsset(Asset asset) {
-        String url = null;
+
+
+        fragment.setOnTapArPlaneListener((hitResult, plane, motionEvent) -> {
+             anchor = hitResult.createAnchor();
+
+        });
+
         List<Format> formatLists = asset.getFormatList();
-        for (Format format : formatLists){
+        for (Format format : formatLists) {
             url = format.getFormatRoot().getUrl();
+            Log.e("url" , url);
+
         }
         ModelRenderable.builder()
                 .setSource(getContext(), RenderableSource.builder().setSource(
@@ -159,11 +168,16 @@ public class HomeFragment extends Fragment implements ItemSelect {
                         .build())
                 .setRegistryId(url)
                 .build()
-                .thenAccept(renderable -> duckRenderable = renderable)
+                .thenAccept(modelRenderable -> placeModel(modelRenderable, anchor))
                 .exceptionally(
                         throwable -> {
                             Toast.makeText(getContext(), "Unable to load" + url, Toast.LENGTH_SHORT).show();
                             return null;
                         });
+    }
+    private void placeModel(ModelRenderable modelRenderable, Anchor anchor) {
+        AnchorNode anchorNode = new AnchorNode(anchor);
+        anchorNode.setRenderable(modelRenderable);
+        fragment.getArSceneView().getScene().addChild(anchorNode);
     }
 }

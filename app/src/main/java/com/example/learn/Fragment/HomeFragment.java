@@ -29,6 +29,7 @@ import com.google.ar.core.Anchor;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.assets.RenderableSource;
 import com.google.ar.sceneform.rendering.ModelRenderable;
+import com.google.ar.sceneform.ux.TransformableNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +65,10 @@ public class HomeFragment extends Fragment implements ItemSelect {
         super.onViewCreated(view, savedInstanceState);
         fragment = (CustomArFragment) getChildFragmentManager().findFragmentById(R.id.sceneform_fragment);
         fragment.getPlaneDiscoveryController().hide();
+        fragment.setOnTapArPlaneListener((hitResult, plane, motionEvent) -> {
+            anchor = hitResult.createAnchor();
 
+        });
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -105,12 +109,16 @@ public class HomeFragment extends Fragment implements ItemSelect {
 
                     List<Asset> assetList = response.body().getAssets();
                     List<Asset> gilfList = new ArrayList<>();
+//error concurrentModificationException
+                for (Asset myAsset : assetList){
 
-                /*  for (Asset myAsset : assetList){
-                      if (myAsset.getFormat().getFormatType().contains("GLTF")){
-                          gilfList.add(myAsset);
-                      }
-                  }*/
+                        Log.e("Asset"  , myAsset.getFormatList().toString());
+                       for (Format formats : myAsset.getFormatList()){
+                           if (formats.getFormatType().equalsIgnoreCase("obj")){
+                               assetList.remove(myAsset);
+                           }
+                       }
+                  }
 
                     recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
                     adapter = new AssetAdapter(getContext(), assetList, itemClick);
@@ -145,16 +153,11 @@ public class HomeFragment extends Fragment implements ItemSelect {
     }
 
     private void placeAsset(Asset asset) {
-
-
-        fragment.setOnTapArPlaneListener((hitResult, plane, motionEvent) -> {
-             anchor = hitResult.createAnchor();
-
-        });
-
         List<Format> formatLists = asset.getFormatList();
         for (Format format : formatLists) {
-            url = format.getFormatRoot().getUrl();
+
+            // url = format.getFormatRoot().getUrl();
+            url = "https://poly.googleapis.com/downloads/fp/1582664015931565/69ejysWdDXG/2Gi-kna7W1j/Sun_01.gltf";
             Log.e("url" , url);
 
         }
@@ -163,7 +166,7 @@ public class HomeFragment extends Fragment implements ItemSelect {
                         getContext(),
                         Uri.parse(url),
                         RenderableSource.SourceType.GLTF2)
-                        .setScale(0.5f)  // Scale the original model to 50%.
+                        .setScale(0.00025f)  // Scale the original model to 50%.
                         .setRecenterMode(RenderableSource.RecenterMode.ROOT)
                         .build())
                 .setRegistryId(url)
@@ -179,5 +182,9 @@ public class HomeFragment extends Fragment implements ItemSelect {
         AnchorNode anchorNode = new AnchorNode(anchor);
         anchorNode.setRenderable(modelRenderable);
         fragment.getArSceneView().getScene().addChild(anchorNode);
+        TransformableNode node = new TransformableNode(fragment.getTransformationSystem());
+        node.setParent(anchorNode);
+        node.setRenderable(modelRenderable);
+        node.select();
     }
 }

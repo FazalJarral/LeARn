@@ -23,6 +23,10 @@ public class Format {
         return formatRoot;
     }
 
+    public void setFormatType(String formatType) {
+        this.formatType = formatType;
+    }
+
     @NonNull
     @Override
     public String toString() {

@@ -2,13 +2,14 @@ package com.example.learn.bean;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ModelList {
     @SerializedName("assets")
-    List<Asset> assets;
+    ArrayList<Asset> assets;
 
-    public List<Asset> getAssets() {
+    public ArrayList<Asset> getAssets() {
         return assets;
     }
 }

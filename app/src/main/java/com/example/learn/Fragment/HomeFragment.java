@@ -32,6 +32,7 @@ import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.TransformableNode;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import retrofit2.Call;
@@ -39,6 +40,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+
+import static java.util.Comparator.comparing;
 
 public class HomeFragment extends Fragment implements ItemSelect {
     private CustomArFragment fragment;
@@ -51,6 +54,7 @@ public class HomeFragment extends Fragment implements ItemSelect {
     AssetAdapter adapter;
     Anchor anchor;
     String url = null;
+    Boolean isGFTL2;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -69,7 +73,7 @@ public class HomeFragment extends Fragment implements ItemSelect {
             anchor = hitResult.createAnchor();
 
         });
-
+        isGFTL2 = false;
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -107,21 +111,40 @@ public class HomeFragment extends Fragment implements ItemSelect {
                     Toast.makeText(getContext(), "Successful", Toast.LENGTH_SHORT).show();
 
 
-                    List<Asset> assetList = response.body().getAssets();
-                    List<Asset> gilfList = new ArrayList<>();
+                    ArrayList<Asset> assetList = response.body().getAssets();
+                    ArrayList<Asset> gilfList = assetList;
 //error concurrentModificationException
                 for (Asset myAsset : assetList){
+                        ArrayList<Format> formats = myAsset.getFormatList();
+                    /*
+                    Since we have sorted the list , it will either return FBX as first or GLTF incase FBX
+                    Is not present.
+                     */
+                    Collections.sort(formats , new Format.TypeComp());
+                    for (Format format : formats){
+                        if (format.getFormatType().equalsIgnoreCase("GLTF2")){
+                            myAsset.setUrl(format.getFormatRoot().getUrl());
+                        }
+                        else if (format.getFormatType().equalsIgnoreCase("GLTF")){
+                            myAsset.setUrl(format.getFormatRoot().getUrl());
+                        }
+                        else if(format.getFormatType().equalsIgnoreCase("FBX"))
+                        {
+                           format = myAsset.getFormatList().get(1);
+                           myAsset.setUrl(format.getFormatRoot().getUrl());
 
-                        Log.e("Asset"  , myAsset.getFormatList().toString());
-                       for (Format formats : myAsset.getFormatList()){
-                           if (formats.getFormatType().equalsIgnoreCase("obj")){
-                               assetList.remove(myAsset);
-                           }
-                       }
+                        }
+                        else
+                            gilfList.remove(myAsset);
+                    }
+
+                     //   format = myAsset.getFormatList().get(0);
+
+//
                   }
-
+                    Log.e("Size" , assetList.size() + "  " + gilfList.size() );
                     recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-                    adapter = new AssetAdapter(getContext(), assetList, itemClick);
+                    adapter = new AssetAdapter(getContext(), gilfList, itemClick);
                     recyclerView.setAdapter(adapter);
                     recyclerView.setVisibility(View.VISIBLE);
                 }
@@ -156,8 +179,8 @@ public class HomeFragment extends Fragment implements ItemSelect {
         List<Format> formatLists = asset.getFormatList();
         for (Format format : formatLists) {
 
-            // url = format.getFormatRoot().getUrl();
-            url = "https://poly.googleapis.com/downloads/fp/1582664015931565/69ejysWdDXG/2Gi-kna7W1j/Sun_01.gltf";
+           //  url = format.getFormatRoot().getUrl();
+            url = "https://poly.googleapis.com/downloads/fp/1582663728912116/5lZG37egsvd/8Sj7gNs9LdQ/model.fbx";
             Log.e("url" , url);
 
         }
@@ -166,7 +189,7 @@ public class HomeFragment extends Fragment implements ItemSelect {
                         getContext(),
                         Uri.parse(url),
                         RenderableSource.SourceType.GLTF2)
-                        .setScale(0.00025f)  // Scale the original model to 50%.
+                        .setScale(0.0025f)  // Scale the original model to 50%.
                         .setRecenterMode(RenderableSource.RecenterMode.ROOT)
                         .build())
                 .setRegistryId(url)

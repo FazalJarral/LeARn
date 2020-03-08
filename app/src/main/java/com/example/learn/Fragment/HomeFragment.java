@@ -33,6 +33,7 @@ import com.google.ar.sceneform.ux.TransformableNode;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import retrofit2.Call;
@@ -55,6 +56,7 @@ public class HomeFragment extends Fragment implements ItemSelect {
     Anchor anchor;
     String url = null;
     Boolean isGFTL2;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -90,7 +92,6 @@ public class HomeFragment extends Fragment implements ItemSelect {
         });
 
 
-
     }
 
     private void updateModelList(String query) {
@@ -113,36 +114,37 @@ public class HomeFragment extends Fragment implements ItemSelect {
 
                     ArrayList<Asset> assetList = response.body().getAssets();
                     ArrayList<Asset> gilfList = assetList;
-//error concurrentModificationException
-                for (Asset myAsset : assetList){
+
+
+                    for (Iterator<Asset> assetIterator = assetList.iterator(); assetIterator.hasNext(); ) {
+                        Asset myAsset = assetIterator.next();
+                        Log.e("Asset" , myAsset.getDisplayName());
                         ArrayList<Format> formats = myAsset.getFormatList();
                     /*
                     Since we have sorted the list , it will either return FBX as first or GLTF incase FBX
                     Is not present.
                      */
-                    Collections.sort(formats , new Format.TypeComp());
-                    for (Format format : formats){
-                        if (format.getFormatType().equalsIgnoreCase("GLTF2")){
-                            myAsset.setUrl(format.getFormatRoot().getUrl());
-                        }
-                        else if (format.getFormatType().equalsIgnoreCase("GLTF")){
-                            myAsset.setUrl(format.getFormatRoot().getUrl());
-                        }
-                        else if(format.getFormatType().equalsIgnoreCase("FBX"))
-                        {
-                           format = myAsset.getFormatList().get(1);
-                           myAsset.setUrl(format.getFormatRoot().getUrl());
-
-                        }
-                        else
-                            gilfList.remove(myAsset);
-                    }
-
-                     //   format = myAsset.getFormatList().get(0);
-
+                        Collections.sort(formats, new Format.TypeComp());
+                        for (Iterator<Format> formatIterator = formats.iterator(); formatIterator.hasNext(); ) {
+                            Format format = formatIterator.next();
+                            if (format.getFormatType().equalsIgnoreCase("GLTF2")) {
+                                myAsset.setUrl(format.getFormatRoot().getUrl());
+                            } else if (format.getFormatType().equalsIgnoreCase("GLTF")) {
+                                myAsset.setUrl(format.getFormatRoot().getUrl());
+                            }
+//                        else if(format.getFormatType().equalsIgnoreCase("FBX"))
+//                        {
+//                           format = myAsset.getFormatList().get(1);
+//                           myAsset.setUrl(format.getFormatRoot().getUrl());
 //
-                  }
-                    Log.e("Size" , assetList.size() + "  " + gilfList.size() );
+//                        }
+                            else {
+                                Log.e("Removed" , assetIterator.next().getDisplayName());
+                                assetIterator.remove();
+                            }
+                        }
+                    }
+                    Log.e("Size", assetList.size() + "  " + gilfList.size());
                     recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
                     adapter = new AssetAdapter(getContext(), gilfList, itemClick);
                     recyclerView.setAdapter(adapter);
@@ -156,6 +158,11 @@ public class HomeFragment extends Fragment implements ItemSelect {
 
             }
         });
+    }
+
+    private void removeAsset(ArrayList<Asset> gilfList, Asset myAsset) {
+        gilfList.remove(myAsset);
+
     }
 
     @Override
@@ -179,9 +186,9 @@ public class HomeFragment extends Fragment implements ItemSelect {
         List<Format> formatLists = asset.getFormatList();
         for (Format format : formatLists) {
 
-           //  url = format.getFormatRoot().getUrl();
+            //  url = format.getFormatRoot().getUrl();
             url = "https://poly.googleapis.com/downloads/fp/1582663728912116/5lZG37egsvd/8Sj7gNs9LdQ/model.fbx";
-            Log.e("url" , url);
+            Log.e("url", url);
 
         }
         ModelRenderable.builder()
@@ -201,6 +208,7 @@ public class HomeFragment extends Fragment implements ItemSelect {
                             return null;
                         });
     }
+
     private void placeModel(ModelRenderable modelRenderable, Anchor anchor) {
         AnchorNode anchorNode = new AnchorNode(anchor);
         anchorNode.setRenderable(modelRenderable);

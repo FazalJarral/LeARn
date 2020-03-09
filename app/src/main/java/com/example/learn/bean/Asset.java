@@ -46,6 +46,10 @@ public class Asset {
         this.url = url;
     }
 
+    public void setFormatList(ArrayList<Format> formatList) {
+        this.formatList = formatList;
+    }
+
     @NonNull
     @Override
     public String toString() {

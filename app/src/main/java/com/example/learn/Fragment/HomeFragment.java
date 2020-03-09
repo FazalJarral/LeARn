@@ -30,6 +30,8 @@ import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.assets.RenderableSource;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.TransformableNode;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,7 +57,7 @@ public class HomeFragment extends Fragment implements ItemSelect {
     AssetAdapter adapter;
     Anchor anchor;
     String url = null;
-    Boolean isGFTL2;
+
 
     @Nullable
     @Override
@@ -71,11 +73,7 @@ public class HomeFragment extends Fragment implements ItemSelect {
         super.onViewCreated(view, savedInstanceState);
         fragment = (CustomArFragment) getChildFragmentManager().findFragmentById(R.id.sceneform_fragment);
         fragment.getPlaneDiscoveryController().hide();
-        fragment.setOnTapArPlaneListener((hitResult, plane, motionEvent) -> {
-            anchor = hitResult.createAnchor();
-
-        });
-        isGFTL2 = false;
+        fragment.setOnTapArPlaneListener((hitResult, plane, motionEvent) -> anchor = hitResult.createAnchor());
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -96,13 +94,16 @@ public class HomeFragment extends Fragment implements ItemSelect {
 
     private void updateModelList(String query) {
         Log.e("query", query);
+        Gson gson = new GsonBuilder()
+                .setLenient()
+                .create();
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
         polyApi = retrofit.create(PolyApi.class);
 
-        Call<ModelList> models = polyApi.getModel(query, API_KEY);
+        Call<ModelList> models = polyApi.getModel(query, "GLTF2", API_KEY);
         Log.e("query", models.request().toString());
 
         models.enqueue(new Callback<ModelList>() {
@@ -113,13 +114,14 @@ public class HomeFragment extends Fragment implements ItemSelect {
 
 
                     ArrayList<Asset> assetList = response.body().getAssets();
-                    ArrayList<Asset> gilfList = assetList;
-
+                    ArrayList<Asset> gilfList = new ArrayList<>();
 
                     for (Iterator<Asset> assetIterator = assetList.iterator(); assetIterator.hasNext(); ) {
                         Asset myAsset = assetIterator.next();
-                        Log.e("Asset" , myAsset.getDisplayName());
                         ArrayList<Format> formats = myAsset.getFormatList();
+                        ArrayList<Format> formatList = new ArrayList<>();
+
+                        formatList.addAll(myAsset.getFormatList());
                     /*
                     Since we have sorted the list , it will either return FBX as first or GLTF incase FBX
                     Is not present.
@@ -127,26 +129,30 @@ public class HomeFragment extends Fragment implements ItemSelect {
                         Collections.sort(formats, new Format.TypeComp());
                         for (Iterator<Format> formatIterator = formats.iterator(); formatIterator.hasNext(); ) {
                             Format format = formatIterator.next();
-                            if (format.getFormatType().equalsIgnoreCase("GLTF2")) {
+                            if (!(format.getFormatType().contentEquals("GLTF2"))) {
+                                //Log.e("format removed in ", myAsset.getDisplayName() + " " + format.getFormatType());
+                                Log.e("Format List of asset" , myAsset.getDisplayName() + " " + format.getFormatType());
+                              //  formatIterator.remove();
+                                formatList.remove(format);
+                                Log.e(" NEW Format List of asset" , myAsset.getDisplayName() + " " + formatList.get(0).getFormatType());
+
+                            } else {
+                                format = formatList.get(0);
+
                                 myAsset.setUrl(format.getFormatRoot().getUrl());
-                            } else if (format.getFormatType().equalsIgnoreCase("GLTF")) {
-                                myAsset.setUrl(format.getFormatRoot().getUrl());
+                                myAsset.setFormatList(formatList);
+
                             }
-//                        else if(format.getFormatType().equalsIgnoreCase("FBX"))
-//                        {
-//                           format = myAsset.getFormatList().get(1);
-//                           myAsset.setUrl(format.getFormatRoot().getUrl());
-//
-//                        }
-                            else {
-                                Log.e("Removed" , assetIterator.next().getDisplayName());
-                                assetIterator.remove();
-                            }
+
+
                         }
+
+                        // Log.e("Asset", myAsset.getDisplayName() + " " + formats.get(0).getFormatType());
+
                     }
                     Log.e("Size", assetList.size() + "  " + gilfList.size());
                     recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-                    adapter = new AssetAdapter(getContext(), gilfList, itemClick);
+                    adapter = new AssetAdapter(getContext(), assetList, itemClick);
                     recyclerView.setAdapter(adapter);
                     recyclerView.setVisibility(View.VISIBLE);
                 }
@@ -160,10 +166,6 @@ public class HomeFragment extends Fragment implements ItemSelect {
         });
     }
 
-    private void removeAsset(ArrayList<Asset> gilfList, Asset myAsset) {
-        gilfList.remove(myAsset);
-
-    }
 
     @Override
     public void onAttach(Context context) {
@@ -183,20 +185,22 @@ public class HomeFragment extends Fragment implements ItemSelect {
     }
 
     private void placeAsset(Asset asset) {
-        List<Format> formatLists = asset.getFormatList();
-        for (Format format : formatLists) {
-
-            //  url = format.getFormatRoot().getUrl();
-            url = "https://poly.googleapis.com/downloads/fp/1582663728912116/5lZG37egsvd/8Sj7gNs9LdQ/model.fbx";
-            Log.e("url", url);
-
-        }
+//        List<Format> formatLists = asset.getFormatList();
+//        for (Format format : formatLists) {
+//
+//              url = asset.getUrl();
+//            //url = "https://poly.googleapis.com/downloads/fp/1582663728912116/5lZG37egsvd/8Sj7gNs9LdQ/model.fbx";
+//            Log.e("url", url);
+//
+//        }
+        url = asset.getUrl();
+        Log.e("selected_url" , url);
         ModelRenderable.builder()
                 .setSource(getContext(), RenderableSource.builder().setSource(
                         getContext(),
                         Uri.parse(url),
                         RenderableSource.SourceType.GLTF2)
-                        .setScale(0.0025f)  // Scale the original model to 50%.
+                        .setScale(0.05f)  // Scale the original model to 50%.
                         .setRecenterMode(RenderableSource.RecenterMode.ROOT)
                         .build())
                 .setRegistryId(url)

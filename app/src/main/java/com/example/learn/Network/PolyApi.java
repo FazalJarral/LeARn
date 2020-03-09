@@ -12,6 +12,7 @@ public interface PolyApi {
     @GET("assets")
     Call<ModelList> getModel(
             @Query("keywords") String keyword ,
+            @Query("format") String format ,
             @Query("key") String api_key
 
     );
